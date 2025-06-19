@@ -1,0 +1,37 @@
+/*src/index.css*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@font-face {
+    font-family: 'Lufga';
+    src: url('./assets/fonts/LufgaRegular.ttf') format('ttf');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lufga';
+    src: url('./assets/fonts/LufgaBold.ttf') format('ttf');
+    font-weight: 700;
+    font-style: normal;
+}
+
+body {
+    overflow-x: hidden;
+    margin: 0;
+    font-family: 'Lufga', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+        monospace;
+}
+
+h2 {
+    margin-top: 2rem;
+}
