@@ -14,6 +14,14 @@ Route::post('/patient/register', [AuthController::class, 'register']);
 Route::post('/doctor/register', [DoctorRegisterController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// ✅ M-PESA PUBLIC ROUTES
+Route::post('/mpesa/stkpush', [TransactionController::class, 'stkPushRequest']);
+Route::post('/mpesa/callback', [MpesaCallbackController::class, 'handleCallback']);
+Route::get('/confirm/{transactionCode}', [TransactionController::class, 'checkTransactionStatus']);
+Route::post('/mpesa/status/result', [MpesaCallbackController::class, 'handleResult']);
+Route::post('/mpesa/status/timeout', [MpesaCallbackController::class, 'handleTimeout']);
+
+
 // 🔐 Protected routes
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -38,16 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/patients/{id}', [AuthController::class, 'patch']); 
     Route::delete('/patients/{id}', [AuthController::class, 'destroy']); 
 
+    // Chat
     Route::get('/chat-users', [ChatController::class, 'chatUsers']);
     Route::post('/messages', [ChatController::class, 'message']);
     Route::get('/messages/{userId}', [ChatController::class, 'fetchMessages']);
 });
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::post('/mpesa/stkpush', 'TransactionController@stkPushRequest');
-Route::post('/mpesa/callback', [MpesaCallbackController::class, 'handleCallback']);
-Route::get('/confirm/{transactionCode}', [TransactionController::class, 'checkTransactionStatus']);
-

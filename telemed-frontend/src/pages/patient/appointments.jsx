@@ -29,32 +29,42 @@ const Appointment = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleBook = () => {
-    const { date, time, type } = formData;
-    if (!date || !time) {
-      alert("Please fill in both date and time.");
-      return;
-    }
+ const typeToAmount = {
+  "New Patient": 1,
+  "Follow-up": 500,
+  "Consultation": 700,
+};
 
-    const newAppointment = {
-      id: editId || Date.now(),
-      title: `${type} - ${time}`,
-      date: `${date}T${time}`,
-      extendedProps: { type },
-    };
+const handleBook = () => {
+  const { date, time, type } = formData;
+  if (!date || !time) {
+    alert("Please fill in both date and time.");
+    return;
+  }
 
-    if (editId) {
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === editId ? newAppointment : a))
-      );
-    } else {
-      setAppointments((prev) => [...prev, newAppointment]);
-    }
+  const amount = typeToAmount[type] || 500;
 
-    setFormData({ date: "", time: "", type: "Consultation" });
-    setEditId(null);
-    navigate("/patient/payment", { state: newAppointment });
+  const newAppointment = {
+    id: editId || Date.now(),
+    title: `${type} - ${time}`,
+    date: `${date}T${time}`,
+    extendedProps: { type, amount },
   };
+
+  if (editId) {
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === editId ? newAppointment : a))
+    );
+  } else {
+    setAppointments((prev) => [...prev, newAppointment]);
+  }
+
+  setFormData({ date: "", time: "", type: "Consultation" });
+  setEditId(null);
+
+  navigate("/patient/payment", { state: newAppointment });
+};
+
 
   const handleEventClick = (info) => {
     const id = parseInt(info.event.id);
