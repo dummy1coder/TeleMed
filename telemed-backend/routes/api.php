@@ -1,13 +1,14 @@
 <?php 
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Auth\DoctorRegisterController;
 use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\TransactionController;
-use Illuminate\Http\Request;
 
 // 🔓 Public routes
 Route::post('/patient/register', [AuthController::class, 'register']);
@@ -21,10 +22,13 @@ Route::get('/confirm/{transactionCode}', [TransactionController::class, 'checkTr
 Route::post('/mpesa/status/result', [MpesaCallbackController::class, 'handleResult']);
 Route::post('/mpesa/status/timeout', [MpesaCallbackController::class, 'handleTimeout']);
 
+// ✅ Broadcasting auth route (required for Pusher/private channels)
+Route::post('/broadcasting/auth', function (Request $request) {
+    return Broadcast::auth($request);
+})->middleware('auth:sanctum');
 
 // 🔐 Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', fn() => response()->json(auth()->user()));
@@ -47,7 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/patients/{id}', [AuthController::class, 'destroy']); 
 
     // Chat
-    Route::get('/chat-users', [ChatController::class, 'chatUsers']);
-    Route::post('/messages', [ChatController::class, 'message']);
-    Route::get('/messages/{userId}', [ChatController::class, 'fetchMessages']);
+    Route::prefix('chat')->group(function () {
+        Route::get('/users', [ChatController::class, 'chatUsers']);
+        Route::get('/messages/{userId}', [ChatController::class, 'fetchMessages']);
+        Route::post('/messages', [ChatController::class, 'store']);
+    });
 });

@@ -70,7 +70,7 @@ const handleChangePassword = async () => {
     const res = await axios.post('/api/doctor/change-password', {
   current: passwords.current,
   new: passwords.new,
-  new_confirmation: passwords.confirm, // Laravel expects this
+  new_confirmation: passwords.confirm,
 }, { withCredentials: true });
 
 

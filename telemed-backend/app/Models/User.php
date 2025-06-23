@@ -21,6 +21,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verified_at',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -29,21 +32,40 @@ class User extends Authenticatable
     ];
 
     public function messages()
-{
-  return $this->hasMany(Message::class);
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'user_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    public function toArray()
+    {
+        $array = parent::toArray();
+
+        if ($this->role === 'patient') {
+            unset(
+                $array['specialization'],
+                $array['medical_license_number'],
+                $array['appointment_time'],
+                $array['phone'],
+                $array['services'],
+                $array['profile'],
+                $array['profile_image']
+            );
+        }
+
+         if ($this->role === 'doctor') {
+            
+        }
+
+        return $array;
+    }
 }
-
-public function sentMessages()
-{
-    return $this->hasMany(Message::class, 'user_id');
-}
-
-public function receivedMessages()
-{
-    return $this->hasMany(Message::class, 'receiver_id');
-}
-
-}
-
-
-

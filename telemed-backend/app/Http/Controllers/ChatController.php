@@ -25,7 +25,6 @@ class ChatController extends Controller
     public function store(Request $request)
 {
     $validated = $request->validate([
-        'user_id' => auth()->id(),
         'receiver_id' => 'required|exists:users,id|not_in:' . auth()->id(),
         'message' => 'required|string|max:1000',
     ]);

@@ -9,12 +9,12 @@ class MpesaCallbackController extends Controller
 {
     public function handleCallback(Request $request)
     {
-        Log::info('📥 M-Pesa STK Push Callback Received', $request->all());
+        Log::info('M-Pesa STK Push Callback Received', $request->all());
 
         $data = $request->input('Body.stkCallback');
 
         if (!$data) {
-            Log::warning('⚠️ Missing stkCallback in M-Pesa callback');
+            Log::warning('Missing stkCallback in M-Pesa callback');
             return response()->json(['status' => 'Invalid callback format'], 400);
         }
 
@@ -27,7 +27,6 @@ class MpesaCallbackController extends Controller
         $phoneNumber = null;
 
         if ($resultCode === 0) {
-            // Parse callback metadata
             foreach ($data['CallbackMetadata']['Item'] as $item) {
                 if ($item['Name'] === 'Amount') {
                     $amount = $item['Value'];
@@ -38,12 +37,10 @@ class MpesaCallbackController extends Controller
                 }
             }
 
-            Log::info("✅ Payment Successful | Phone: $phoneNumber | Amount: $amount | Receipt: $mpesaReceipt");
-
-            // Optional: Save transaction in DB here
+            Log::info("Payment Successful | Phone: $phoneNumber | Amount: $amount | Receipt: $mpesaReceipt");
 
         } else {
-            Log::error("❌ Payment Failed | Code: $resultCode | Desc: $resultDesc");
+            Log::error("Payment Failed | Code: $resultCode | Desc: $resultDesc");
         }
 
         return response()->json(['status' => 'Callback processed'], 200);

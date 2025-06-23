@@ -47,11 +47,15 @@ export default function AuthPage() {
           role: form.role,
         });
 
+        console.log("Login API response:", response.data);
+
         const { token, user } = response.data;
 
-        if (token && user?.role) {
+        if (token && user?.id && user?.role) {
           localStorage.setItem("token", token);
-          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("role", user.role);
+          localStorage.setItem("currentUser", JSON.stringify(user));
           setMessage("Logged in successfully!");
 
           if (user.role === "admin") {
@@ -62,7 +66,7 @@ export default function AuthPage() {
             navigate("/patient/dashboard");
           }
         } else {
-          setMessage("Login failed: No token or user role returned");
+          setMessage("Login failed: No token or user details returned");
         }
       }
     } catch (error) {
