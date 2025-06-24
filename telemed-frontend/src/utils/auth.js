@@ -1,14 +1,16 @@
 export function getCurrentUser() {
-  const userJson = localStorage.getItem("currentUser");
-  const role = localStorage.getItem("role");
-
-  if (!userJson || !role) return null;
-
   try {
+    const userJson = localStorage.getItem("currentUser");
+    const role = localStorage.getItem("role");
+
+    if (!userJson || !role) return null;
+
     const user = JSON.parse(userJson);
-    return { ...user, role };
+    
+    return { ...user, role: role.toLowerCase() };
   } catch (err) {
-    console.error("Invalid user object in storage");
+    console.error("Error parsing user:", err);
     return null;
   }
 }
+

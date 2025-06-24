@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    protected $fillable = ['user_id', 'receiver_id', 'message'];
+    protected $fillable = ['user_id', 'receiver_id', 'message', 'file_path',];
 
     public function sender()
     {

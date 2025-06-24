@@ -13,7 +13,7 @@ const DoctorDashboard = () => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("currentUser"));
     if (user?.role === "doctor") {
       setDoctor(user);
       setTodaysAppointments([
