@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Sidebar from "../../components/Patient/Sidebar";
-import { FaCalendarAlt, FaHeartbeat, FaLightbulb, FaMoon, FaSun } from "react-icons/fa";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
+import {FaCalendarAlt,FaHeartbeat,FaLightbulb,FaMoon,FaSun,} from "react-icons/fa";
+import {LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,} from "recharts";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -11,11 +9,19 @@ import "react-calendar/dist/Calendar.css";
 import { ThemeContext } from "../../context/ThemeContext";
 
 const PatientDashboard = () => {
+  const [patient, setPatient] = useState(null);
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [appointments, setAppointments] = useState([]);
   const [sidebarWidth, setSidebarWidth] = useState(256);
 
   useEffect(() => {
+    // Load patient info from localStorage
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user?.role === "patient") {
+      setPatient(user);
+    }
+
+    // Simulated appointments
     setAppointments([
       {
         id: 1,
@@ -60,12 +66,23 @@ const PatientDashboard = () => {
     }
   };
 
+  if (!patient) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
-      <Sidebar onToggle={setSidebarWidth}/>
+      <Sidebar onToggle={setSidebarWidth} />
 
-      <div className="flex-1 p-6 transition-all duration-300" style={{ marginLeft: `${sidebarWidth}px` }}>
-        {/* Global Toggle Button */}
+      <div
+        className="flex-1 p-6 transition-all duration-300"
+        style={{ marginLeft: `${sidebarWidth}px` }}
+      >
+        {/* Dark mode toggle */}
         <div className="flex justify-end mb-4">
           <button
             onClick={toggleDarkMode}
@@ -83,11 +100,12 @@ const PatientDashboard = () => {
           </button>
         </div>
 
+        {/* Welcome message */}
         <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-300 mb-6">
-          Welcome, Patient!
+          Welcome, {patient.name}
         </h1>
 
-        {/* Dashboard Grid */}
+        {/* Dashboard grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Calendar */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
@@ -104,7 +122,7 @@ const PatientDashboard = () => {
             />
           </div>
 
-          {/* Chart */}
+          {/* Health chart */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
             <div className="flex items-center gap-3 mb-4 text-green-600 dark:text-green-400">
               <FaHeartbeat className="text-2xl" />
@@ -112,18 +130,26 @@ const PatientDashboard = () => {
             </div>
             <div className="h-40 flex items-center justify-center text-gray-400">
               <ResponsiveContainer width="100%" height={160}>
-                <LineChart data={healthData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <LineChart
+                  data={healthData}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
                   <XAxis dataKey="date" stroke="#888" />
                   <YAxis stroke="#888" />
                   <Tooltip />
-                  <Line type="monotone" dataKey="value" stroke="#16a34a" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#16a34a"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Tips */}
+          {/* Health tips */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
             <div className="flex items-center gap-3 mb-4 text-yellow-600 dark:text-yellow-400">
               <FaLightbulb className="text-2xl" />

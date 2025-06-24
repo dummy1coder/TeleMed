@@ -12,6 +12,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMail;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -82,6 +83,31 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+
+    //profile
+    public function profile(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    public function updateProfile(Request $request)
+    {
+
+        \Log::info('UpdateProfile Request', $request->all());
+
+        $user = $request->user();
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|string',
+            'address' => 'nullable|string|max:255',
+        ]);
+        $user->update($validated);
+        return response()->json($user);
+    }
+
 
     //Logout
     public function logout(Request $request)

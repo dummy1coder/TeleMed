@@ -1,8 +1,10 @@
-import React, {useState } from "react";
+import React, { useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "../../api/axios";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const Payment = () => {
+  const { darkMode } = useContext(ThemeContext);
   const location = useLocation();
   const appointment = location.state;
   const [phone, setPhone] = useState("");
@@ -13,19 +15,33 @@ const Payment = () => {
 
   const handlePayment = async () => {
     setStatus("");
-    if (!phone.match(/^254\d{9}$/)) {
-      return setStatus("Please enter a valid Safaricom number (2547XXXXXXXX).");
-    }
+    let formattedPhone = phone.trim();
+
+// Handle formats like: 07XXXXXXXX
+if (formattedPhone.startsWith("07") && formattedPhone.length === 10) {
+  formattedPhone = "254" + formattedPhone.slice(1); // replace leading 0 with 254
+}
+
+// Handle formats like: 7XXXXXXXX (no leading 0)
+if (formattedPhone.length === 9 && formattedPhone.startsWith("7")) {
+  formattedPhone = "254" + formattedPhone;
+}
+
+// Final validation
+if (!formattedPhone.match(/^2547\d{8}$/)) {
+  return setStatus("❗ Please enter a valid Safaricom number (e.g. 0712345678 or 712345678).");
+}
+
 
     setLoading(true);
     try {
       const response = await axios.post("/mpesa/stkpush", {
-        phone_number: phone,
+        phone_number: formattedPhone,
         amount: amount,
         description: appointment?.title || "Appointment Payment",
       });
 
-      if (response.data && response.data.status === "success") {
+      if (response.data?.status === "success") {
         setStatus("✅ Payment request sent. Check your phone.");
       } else {
         setStatus("⚠️ Payment request failed.");
@@ -39,31 +55,53 @@ const Payment = () => {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white dark:bg-gray-800 shadow rounded text-gray-900 dark:text-white">
-      <h2 className="text-xl font-bold mb-4 text-blue-600">Complete Your Payment</h2>
-      <p className="mb-2"><strong>Appointment:</strong> {appointment?.title}</p>
-      <p className="mb-4"><strong>Amount:</strong> KES {amount}</p>
+    <div className={`min-h-screen flex items-center justify-center px-4 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl w-full max-w-4xl grid md:grid-cols-2 gap-8 p-8">
+        
+        {/* Appointment Summary */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-blue-600">Complete Your Payment</h2>
+          <div className="text-sm">
+            <p><strong>Appointment:</strong> {appointment?.title}</p>
+            <p><strong>Amount:</strong> <span className="text-green-600 font-semibold">KES {amount}</span></p>
+            <p><strong>Phone Number:</strong> <span className="text-gray-600">(2547XXXXXXXX)</span></p>
+          </div>
+        </div>
 
-      <label className="block mb-1 font-semibold">Phone Number (2547XXXXXXXX):</label>
-      <input
-        type="tel"
-        placeholder="Enter phone number"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        className="w-full border rounded p-2 mb-4 dark:bg-gray-700"
-      />
+        {/* Payment Form */}
+        <div className="space-y-4">
+          <label className="block text-sm font-semibold">Phone Number</label>
+          <input
+            type="tel"
+            placeholder="Enter phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full border dark:border-gray-600 rounded p-2 dark:bg-gray-700"
+          />
 
-      <button
-        onClick={handlePayment}
-        disabled={loading}
-        className={`w-full py-2 rounded text-white ${
-          loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
-        }`}
-      >
-        {loading ? "Processing..." : "Pay with M-Pesa"}
-      </button>
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className={`w-full py-2 rounded text-white transition font-semibold ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {loading ? "Processing..." : "Pay with M-Pesa"}
+          </button>
 
-      {status && <p className="mt-4 text-sm">{status}</p>}
+          {status && (
+            <p
+              className={`text-sm mt-2 ${
+                status.includes("✅") ? "text-green-600" :
+                status.includes("❌") ? "text-red-600" :
+                "text-yellow-600"
+              }`}
+            >
+              {status}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

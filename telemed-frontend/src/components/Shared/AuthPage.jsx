@@ -52,7 +52,6 @@ export default function AuthPage() {
         const { token, user } = response.data;
 
         if (token && user?.id && user?.role) {
-          localStorage.setItem("token", token);
           localStorage.setItem("authToken", token);
           localStorage.setItem("role", user.role);
           localStorage.setItem("currentUser", JSON.stringify(user));

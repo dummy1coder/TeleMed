@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Patient/Sidebar";
 import { FaFileMedical, FaPrescriptionBottleAlt, FaDownload } from "react-icons/fa";
+import { useContext } from "react";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const MedicalRecords = () => {
+  const { darkMode } = useContext(ThemeContext);
   const [records, setRecords] = useState([]);
   const [activeTab, setActiveTab] = useState("reports");
   const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -47,7 +50,7 @@ const MedicalRecords = () => {
   const filteredRecords = records.filter((record) => record.type === activeTab);
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className={`flex min-h-screen transition-all duration-300 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       {/* Sidebar */}
       <div className="fixed top-0 left-0 h-full z-10">
         <Sidebar onToggle={setSidebarWidth} />
@@ -66,9 +69,14 @@ const MedicalRecords = () => {
             onClick={() => setActiveTab("reports")}
             className={`px-4 py-2 rounded ${
               activeTab === "reports"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600 border border-blue-600"
+              ? darkMode
+              ? "bg-blue-600 text-white"
+              : "bg-blue-600 text-white"
+              : darkMode
+              ? "bg-gray-700 text-blue-400 border border-blue-400"
+              : "bg-white text-blue-600 border border-blue-600"
             }`}
+
           >
             Reports
           </button>
@@ -76,8 +84,12 @@ const MedicalRecords = () => {
             onClick={() => setActiveTab("prescription")}
             className={`px-4 py-2 rounded ${
               activeTab === "prescription"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-blue-600 border border-blue-600"
+              ? darkMode
+              ? "bg-blue-600 text-white"
+              : "bg-blue-600 text-white"
+              : darkMode
+              ? "bg-gray-700 text-blue-400 border border-blue-400"
+              : "bg-white text-blue-600 border border-blue-600"
             }`}
           >
             Prescriptions
@@ -92,7 +104,7 @@ const MedicalRecords = () => {
             {filteredRecords.map((record) => (
               <div
                 key={record.id}
-                className="bg-white rounded-xl shadow p-5 space-y-3"
+                className={`rounded-xl shadow p-5 space-y-3 ${darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}
               >
                 <div className="flex items-center gap-3 text-blue-600">
                   {record.type === "prescription" ? (
@@ -102,15 +114,16 @@ const MedicalRecords = () => {
                   )}
                   <h2 className="text-lg font-semibold">{record.title}</h2>
                 </div>
-                <p className="text-sm text-gray-500">{record.date}</p>
-                <p className="text-gray-700">{record.description}</p>
-                <a
-                  href={record.fileUrl}
-                  download
-                  className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                >
-                  <FaDownload /> Download
-                </a>
+                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{record.date}</p>
+                <p className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}>{record.description}</p>
+                <a href={record.fileUrl} download
+                className={`inline-flex items-center gap-2 text-sm hover:underline ${
+                  darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"
+                  }`}
+                  >
+                    <FaDownload /> Download
+                    </a>
+
               </div>
             ))}
           </div>

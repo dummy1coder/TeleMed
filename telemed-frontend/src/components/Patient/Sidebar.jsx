@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaChartPie,
-  FaCalendarAlt,
-  FaComments,
-  FaFileMedical,
-  FaCog,
-  FaSignOutAlt,
-  FaBars,
-  FaTimes,
-} from "react-icons/fa";
+import {FaChartPie,FaCalendarAlt,FaComments,FaFileMedical,FaCog,FaSignOutAlt,FaBars,FaTimes,} from "react-icons/fa";
 import Logout from "../../pages/logout";
 import { Link, useLocation } from "react-router-dom";
+import { useContext } from "react";
+import { ThemeContext } from "../../context/ThemeContext";
+
 
 const Sidebar = ({ onToggle }) => {
+  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
@@ -43,9 +38,10 @@ const Sidebar = ({ onToggle }) => {
 
   return (
     <div
-      className={`h-screen bg-white shadow-lg fixed top-0 left-0 flex flex-col transition-all duration-300 z-50`}
-      style={{ width: collapsed ? "64px" : "256px" }}
-    >
+  className={`h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-white-800'} shadow-lg fixed top-0 left-0 flex flex-col transition-all duration-300 z-50`}
+  style={{ width: collapsed ? "64px" : "256px" }}
+>
+
       {/* Top Header */}
       <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
         {!collapsed && <span className="text-xl font-bold text-blue-600">TeleMed</span>}
@@ -64,8 +60,8 @@ const Sidebar = ({ onToggle }) => {
               to={link.to}
               className={`flex items-center gap-3 p-3 rounded-md transition-all duration-200 ${
                 isActive
-                  ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600 font-semibold"
-                  : "hover:bg-gray-100"
+                  ? `${darkMode ? "bg-blue-900 text-blue-300 border-l-4 border-blue-500" : "bg-blue-100 text-blue-700 border-l-4 border-blue-600"} font-semibold`
+                  : `${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"}`
               }`}
             >
               <div className="text-lg">{link.icon}</div>
@@ -79,8 +75,8 @@ const Sidebar = ({ onToggle }) => {
           <div
             className={`flex items-center gap-3 p-3 rounded-md transition-all duration-200 cursor-pointer hover:bg-gray-100 ${
               location.pathname === "/logout"
-                ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600 font-semibold"
-                : ""
+                ? `${darkMode ? "bg-blue-900 text-white-300 border-l-4 border-blue-500" : "bg-blue-100 text-blue-700 border-l-4 border-blue-600"} font-semibold`
+                : `${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"}`
             }`}
           >
             <div className="text-lg">

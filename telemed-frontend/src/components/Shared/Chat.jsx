@@ -3,8 +3,11 @@ import Pusher from "pusher-js";
 import axios from "../../api/axios";
 import PatientSidebar from "../Patient/Sidebar";
 import DoctorSidebar from "../Doctor/Sidebar";
+import { useContext } from "react";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const Chat = ({ currentUser, role }) => {
+  const { darkMode } = useContext(ThemeContext);
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -87,7 +90,7 @@ const Chat = ({ currentUser, role }) => {
   };
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className={`flex min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       <div className="fixed left-0 top-0 h-full">
         <SidebarComponent onToggle={setSidebarWidth} />
       </div>
@@ -97,7 +100,7 @@ const Chat = ({ currentUser, role }) => {
         style={{ marginLeft: `${sidebarWidth}px` }}
       >
         {/* Chat List */}
-        <div className="w-1/3 border-r bg-white overflow-y-auto">
+        <div className={`w-1/3 border-r ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} overflow-y-auto`}>
           <div className="flex justify-between items-center px-4 py-3 border-b">
             <h2 className="text-xl font-semibold">Chats</h2>
             <button
@@ -126,7 +129,7 @@ const Chat = ({ currentUser, role }) => {
         </div>
 
         {/* Chat Window */}
-        <div className="w-2/3 p-6 flex flex-col space-y-4">
+        <div className={`w-2/3 p-6 flex flex-col space-y-4 ${darkMode ? "bg-gray-900" : ""}`}>
           {!selectedUserId ? (
             <div className="text-center text-gray-500 mt-10">
               <p>Select a user to start chatting</p>
@@ -178,7 +181,9 @@ const Chat = ({ currentUser, role }) => {
 
               {/* Message Input */}
               <div className="flex gap-2 pt-4">
-                <input type="text" value={text} onChange={(e) => setText(e.target.value)} className="flex-1 px-4 py-2 border rounded-2xl text-sm shadow-sm focus:outline-none"
+                <input type="text" value={text} onChange={(e) => setText(e.target.value)} className={`flex-1 px-4 py-2 rounded-2xl text-sm shadow-sm focus:outline-none ${
+                  darkMode ? "bg-gray-800 text-white border-gray-600" : "bg-white border"
+                }`}
                 placeholder="Type your message..."
                 />
                 <input type="file" accept="image/*" onChange={handleImageChange} className="text-sm"/>

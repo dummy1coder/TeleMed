@@ -3,11 +3,17 @@ import Sidebar from "../../components/Patient/Sidebar";
 import { FaPlus, FaCalendarAlt, FaEdit, FaTrash } from "react-icons/fa";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useNavigate } from "react-router-dom";
 
 const Appointment = () => {
+
+  const [popupMessage, setPopupMessage] = useState(null);
+  const showPopup = (message) => {
+  setPopupMessage(message);
+  setTimeout(() => setPopupMessage(null), 3000); // auto-dismiss after 3s
+};
+
   const [appointments, setAppointments] = useState([]);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [formData, setFormData] = useState({
@@ -37,8 +43,16 @@ const Appointment = () => {
 
 const handleBook = () => {
   const { date, time, type } = formData;
+
   if (!date || !time) {
-    alert("Please fill in both date and time.");
+    showPopup("Please fill in both date, time and consultation type.");
+    return;
+  }
+
+  const selectedDateTime = new Date(`${date}T${time}`);
+  const now = new Date();
+  if (selectedDateTime < now) {
+    showPopup("You cannot book a past date or time.");
     return;
   }
 
@@ -46,7 +60,7 @@ const handleBook = () => {
 
   const newAppointment = {
     id: editId || Date.now(),
-    title: `${type} - ${time}`,
+    title: `${type} - ${new Date(date).toLocaleDateString(undefined, {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}`,
     date: `${date}T${time}`,
     extendedProps: { type, amount },
   };
@@ -64,7 +78,6 @@ const handleBook = () => {
 
   navigate("/patient/payment", { state: newAppointment });
 };
-
 
   const handleEventClick = (info) => {
     const id = parseInt(info.event.id);
@@ -97,6 +110,13 @@ const handleBook = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
+      {popupMessage && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-red-500 text-white text-lg px-6 py-4 rounded shadow-lg">
+            {popupMessage}
+            </div>
+            </div>
+          )}
       <Sidebar onToggle={setSidebarWidth}/>
       <div className="flex-1 p-6 transition-all duration-300" style={{ marginLeft: `${sidebarWidth}px` }}>
         <div className="flex items-center gap-3 mb-6 text-blue-600 dark:text-blue-400">
@@ -208,13 +228,14 @@ const handleBook = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Your Appointment Calendar</h3>
           <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            events={appointments}
-            dateClick={handleDateClick}
-            eventClick={handleEventClick}
-            height="auto"
+          plugins={[dayGridPlugin, interactionPlugin]} 
+           initialView="dayGridMonth"
+           events={appointments}
+           dateClick={handleDateClick}
+           eventClick={handleEventClick}
+           height="auto"
           />
+
         </div>
       </div>
     </div>

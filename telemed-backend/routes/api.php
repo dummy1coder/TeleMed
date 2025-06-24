@@ -48,7 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/patients/{id}', [AuthController::class, 'show']); 
     Route::put('/patients/{id}', [AuthController::class, 'update']); 
     Route::patch('/patients/{id}', [AuthController::class, 'patch']); 
-    Route::delete('/patients/{id}', [AuthController::class, 'destroy']); 
+    Route::delete('/patients/{id}', [AuthController::class, 'destroy']);
+    Route::get('/patient/profile', [AuthController::class, 'profile']);
+    Route::put('/patient/update-profile', [AuthController::class, 'updateProfile']);
 
     // Chat
     Route::prefix('chat')->group(function () {
