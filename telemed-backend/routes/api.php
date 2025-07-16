@@ -9,6 +9,9 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Auth\DoctorRegisterController;
 use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\AccountSettingsController;
+use App\Http\Controllers\AppointmentController;
+use App\Models\User;
 
 // 🔓 Public routes
 Route::post('/patient/register', [AuthController::class, 'register']);
@@ -51,11 +54,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/patients/{id}', [AuthController::class, 'destroy']);
     Route::get('/patient/profile', [AuthController::class, 'profile']);
     Route::put('/patient/update-profile', [AuthController::class, 'updateProfile']);
+    Route::put('/patient/change-password', [AccountSettingsController::class, 'changePassword']);
 
     // Chat
     Route::prefix('chat')->group(function () {
         Route::get('/users', [ChatController::class, 'chatUsers']);
         Route::get('/messages/{userId}', [ChatController::class, 'fetchMessages']);
+        Route::post('/messages', [ChatController::class, 'sendMessage']);
         Route::post('/messages', [ChatController::class, 'store']);
     });
+    //Appointment
+    Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::get('/appointments', [AppointmentController::class, 'index']);
+    Route::delete('/appointments/{id}', [AppointmentController::class, 'destroy']);
+
 });

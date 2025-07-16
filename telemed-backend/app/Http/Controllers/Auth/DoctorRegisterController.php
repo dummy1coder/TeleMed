@@ -52,10 +52,12 @@ class DoctorRegisterController extends Controller
         ], 201);
     }
 
-    public function index()
-    {
-        return User::where('role', 'doctor')->get();
-    }
+   public function index()
+{
+    $doctors = User::where('role', 'doctor')->get(['id', 'name', 'email', 'specialization']);
+    return response()->json($doctors);
+}
+
 
     public function show($id)
     {

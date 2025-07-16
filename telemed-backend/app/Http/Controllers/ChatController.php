@@ -6,6 +6,8 @@ use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Appointment;
 
 class ChatController extends Controller
 {
@@ -14,11 +16,11 @@ class ChatController extends Controller
         $messages = Message::with('sender')
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', auth()->id())
-                      ->where('receiver_id', $userId);
+                    ->where('receiver_id', $userId);
             })
             ->orWhere(function ($query) use ($userId) {
                 $query->where('user_id', $userId)
-                      ->where('receiver_id', auth()->id());
+                    ->where('receiver_id', auth()->id());
             })
             ->orderBy('created_at')
             ->get()
@@ -43,19 +45,30 @@ class ChatController extends Controller
         $validated = $request->validate([
             'receiver_id' => 'required|exists:users,id|not_in:' . auth()->id(),
             'message' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB
-            'file' => 'nullable|file|mimes:pdf,docx,mp4|max:10240',      // 10MB
+            'file' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,docx,mp4|max:10240',
         ]);
 
         $imagePath = null;
         $filePath = null;
 
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('chat_images', 'public');
+        if ($request->hasFile('file')) {
+            $extension = strtolower($request->file('file')->getClientOriginalExtension());
+            $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif']);
+
+            $storedPath = $request->file('file')->store(
+                $isImage ? 'chat_images' : 'chat_uploads',
+                'public'
+            );
+
+            if ($isImage) {
+                $imagePath = $storedPath;
+            } else {
+                $filePath = $storedPath;
+            }
         }
 
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('chat_uploads', 'public');
+        if (empty($validated['message']) && !$imagePath && !$filePath) {
+            return response()->json(['error' => 'Empty message not allowed.'], 422);
         }
 
         $message = Message::create([
@@ -82,15 +95,45 @@ class ChatController extends Controller
         ]);
     }
 
-    public function chatUsers()
+    public function chatUsers(Request $request)
     {
-        $user = auth()->user();
-        $oppositeRole = $user->role === 'doctor' ? 'patient' : 'doctor';
+        $user = $request->user();
 
-        $users = User::where('role', $oppositeRole)
-            ->where('id', '!=', $user->id)
-            ->get(['id', 'name', 'email']);
+        if ($user->role === 'patient') {
+            $doctorIds = \App\Models\Appointment::where('patient_id', $user->id)
+                ->where('paid', true)
+                ->pluck('doctor_id')
+                ->unique();
+
+            $users = \App\Models\User::whereIn('id', $doctorIds)->get();
+        } elseif ($user->role === 'doctor') {
+            $patientIds = \App\Models\Appointment::where('doctor_id', $user->id)
+                ->where('paid', true)
+                ->pluck('patient_id')
+                ->unique();
+
+            $users = \App\Models\User::whereIn('id', $patientIds)->get();
+        } else {
+            $users = collect();
+        }
 
         return response()->json($users);
+    }
+    public function sendMessage(Request $request)
+    {
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'required|string',
+            'appointment_id' => 'nullable|exists:appointments,id', 
+        ]);
+
+        $message = Message::create([
+            'user_id' => auth()->id(),
+            'receiver_id' => $request->receiver_id,
+            'message' => $request->message,
+            'appointment_id' => $request->appointment_id,
+        ]);
+
+        return response()->json($message);
     }
 }

@@ -13,6 +13,7 @@ class TransactionController extends Controller
         $request->validate([
             'phone_number' => 'required|string',
             'amount' => 'required|numeric|min:1',
+            'appointment_id' => 'required|exists:appointments,id',
             'description' => 'nullable|string'
         ]);
 
@@ -41,9 +42,6 @@ class TransactionController extends Controller
         ]);
     }
 
-    /**
-     * Check transaction status (optional)
-     */
     public function checkTransactionStatus($transactionCode)
     {
         $mpesa = new MpesaStkpush();
@@ -55,12 +53,10 @@ class TransactionController extends Controller
         ]);
     }
 
-    /**
-     * Format phone number to 2547XXXXXXXX
-     */
+
     private function formatPhone($phone)
     {
-        $phone = preg_replace('/[^0-9]/', '', $phone); // remove non-numeric
+        $phone = preg_replace('/[^0-9]/', '', $phone);
 
         if (Str::startsWith($phone, '0')) {
             $phone = '254' . substr($phone, 1);

@@ -6,17 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
-{
-    Schema::table('messages', function (Blueprint $table) {
-        $table->unsignedBigInteger('receiver_id')->after('user_id');
-
-        $table->foreign('receiver_id')->references('id')->on('users')->onDelete('cascade');
-    });
-}
+    {
+        Schema::table('messages', function (Blueprint $table) {
+            $table->foreignId('appointment_id')->nullable()->constrained()->onDelete('cascade');
+        });
+    }
 
 
     /**

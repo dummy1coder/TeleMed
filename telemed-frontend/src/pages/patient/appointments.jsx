@@ -1,33 +1,99 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Patient/Sidebar";
 import { FaPlus, FaCalendarAlt, FaEdit, FaTrash } from "react-icons/fa";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "../../api/axios";
 
 const Appointment = () => {
-
   const [popupMessage, setPopupMessage] = useState(null);
-  const showPopup = (message) => {
-  setPopupMessage(message);
-  setTimeout(() => setPopupMessage(null), 3000); // auto-dismiss after 3s
-};
+  const navigate = useNavigate();
+  const [isBooking, setIsBooking] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get("/doctors", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Fetched doctors:", response.data);
+        setDoctors(response.data);
+      } catch (error) {
+        console.error("Failed to fetch doctors:", error);
+      }
+    };
 
+    fetchDoctors();
+  }, []);
   const [appointments, setAppointments] = useState([]);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
     type: "Consultation",
+    doctor_id: "",
   });
   const [editId, setEditId] = useState(null);
-  
+
+  const location = useLocation();
 
   const appointmentTypes = ["New Patient", "Follow-up", "Consultation"];
+  const typeToAmount = {
+    "New Patient": 1,
+    "Follow-up": 1,
+    "Consultation": 1,
+  };
 
-  const handleDateClick = (info) => {
-    setFormData({ ...formData, date: info.dateStr });
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      try {
+        const response = await axios.get("/appointments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const events = response.data.map((appt) => ({
+          id: appt.id,
+          title: appt.title || appt.type || "Appointment",
+          date: `${appt.date}T${appt.time}`,
+          extendedProps: appt,
+        }));
+
+        setAppointments(events);
+      } catch (err) {
+        console.error("Failed to fetch appointments:", err);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.bookedAppointment) {
+      const appt = location.state.bookedAppointment;
+      const calendarEvent = {
+        id: appt.id || new Date().getTime(),
+        title: appt.title || appt.type || "Appointment",
+        date: appt.date || appt.start || "",
+        extendedProps: {
+          ...appt,
+          type: appt.type || "Consultation",
+        },
+      };
+      setAppointments((prev) => [...prev, calendarEvent]);
+    }
+  }, [location.state]);
+
+  const showPopup = (message) => {
+    setPopupMessage(message);
+    setTimeout(() => setPopupMessage(null), 3000);
   };
 
   const handleInputChange = (e) => {
@@ -35,55 +101,105 @@ const Appointment = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
- const typeToAmount = {
-  "New Patient": 1,
-  "Follow-up": 500,
-  "Consultation": 700,
-};
-
-const handleBook = () => {
-  const { date, time, type } = formData;
-
-  if (!date || !time) {
-    showPopup("Please fill in both date, time and consultation type.");
-    return;
-  }
-
-  const selectedDateTime = new Date(`${date}T${time}`);
-  const now = new Date();
-  if (selectedDateTime < now) {
-    showPopup("You cannot book a past date or time.");
-    return;
-  }
-
-  const amount = typeToAmount[type] || 500;
-
-  const newAppointment = {
-    id: editId || Date.now(),
-    title: `${type} - ${new Date(date).toLocaleDateString(undefined, {weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'})}`,
-    date: `${date}T${time}`,
-    extendedProps: { type, amount },
+  const handleDateClick = (info) => {
+    setFormData({ ...formData, date: info.dateStr });
   };
 
-  if (editId) {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === editId ? newAppointment : a))
-    );
-  } else {
-    setAppointments((prev) => [...prev, newAppointment]);
-  }
+  const handleBook = async () => {
+    const { date, time, type, doctor_id } = formData;
 
-  setFormData({ date: "", time: "", type: "Consultation" });
-  setEditId(null);
+    if (!doctor_id || !date || !time || !type) {
+      showPopup("Please fill in all required fields: doctor, date, time, and type.");
+      return;
+    }
 
-  navigate("/patient/payment", { state: newAppointment });
-};
+    const doctorId = parseInt(doctor_id);
+    if (!doctorId) {
+      showPopup("Please select a valid doctor.");
+      return;
+    }
+
+    const selectedDateTime = new Date(`${date}T${time}`);
+    if (selectedDateTime < new Date()) {
+      showPopup("You cannot book a past date or time.");
+      return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      showPopup("You are not logged in. Please log in first.");
+      return;
+    }
+
+    const amount = typeToAmount[type] || 500;
+
+    setIsBooking(true);
+    try {
+      const response = await axios.post(
+        "/appointments",
+        { type, date, time, amount, doctor_id: doctorId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const appointment = response.data;
+
+      const phone = prompt("Enter your M-PESA phone number:");
+      if (!phone) {
+        showPopup("Payment cancelled. Phone number is required.");
+        return;
+      }
+
+      await axios.post(
+        "/mpesa/stkpush",
+        {
+          phone,
+          amount,
+          appointment_id: appointment.id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      navigate("/patient/payment", { state: response.data });
+    } catch (error) {
+      console.error("Booking error:", error);
+      const errorData = error.response?.data;
+      const firstError =
+        errorData?.errors && typeof errorData.errors === "object"
+          ? Object.values(errorData.errors)[0][0]
+          : errorData?.message || "Failed to book appointment. Please try again.";
+      showPopup(firstError);
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirm = window.confirm("Are you sure you want to delete this appointment?");
+    if (!confirm) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(`/appointments/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
+    } catch (error) {
+      console.error("Failed to delete appointment:", error);
+      showPopup("Failed to delete appointment. Please try again.");
+    }
+  };
 
   const handleEventClick = (info) => {
     const id = parseInt(info.event.id);
-    if (window.confirm("Do you want to cancel this appointment?")) {
-      setAppointments((prev) => prev.filter((a) => a.id !== id));
-    }
+    handleDelete(id);
   };
 
   const handleEdit = (id) => {
@@ -95,40 +211,32 @@ const handleBook = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this appointment?")) {
-      setAppointments((prev) => prev.filter((a) => a.id !== id));
-      if (editId === id) {
-        setFormData({ date: "", time: "", type: "Consultation" });
-        setEditId(null);
-      }
-    }
-  };
-
-  const navigate = useNavigate();
-
-
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
       {popupMessage && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-red-500 text-white text-lg px-6 py-4 rounded shadow-lg">
             {popupMessage}
-            </div>
-            </div>
-          )}
-      <Sidebar onToggle={setSidebarWidth}/>
-      <div className="flex-1 p-6 transition-all duration-300" style={{ marginLeft: `${sidebarWidth}px` }}>
+          </div>
+        </div>
+      )}
+
+      <Sidebar onToggle={setSidebarWidth} />
+      <div
+        className="flex-1 p-6 transition-all duration-300"
+        style={{ marginLeft: `${sidebarWidth}px` }}
+      >
         <div className="flex items-center gap-3 mb-6 text-blue-600 dark:text-blue-400">
           <FaCalendarAlt className="text-2xl" />
           <h2 className="text-2xl font-bold">Manage Appointments</h2>
         </div>
 
-        {/* Form & Table side-by-side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Booking Form */}
+          {/* Appointment Form */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-            <h3 className="text-lg font-bold mb-4">{editId ? "Edit" : "Book"} Appointment</h3>
+            <h3 className="text-lg font-bold mb-4">
+              {editId ? "Edit" : "Book"} Appointment
+            </h3>
 
             <div className="grid gap-4">
               <div>
@@ -164,14 +272,35 @@ const handleBook = () => {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm mb-1 font-semibold">Select Doctor</label>
+                <select
+                  name="doctor_id"
+                  value={formData.doctor_id || ""}
+                  onChange={handleInputChange}
+                  className="w-full p-2 rounded border dark:bg-gray-700"
+                >
+                  <option value="">-- Select a Doctor --</option>
+                  {doctors.map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      Dr. {doc.full_name} ({doc.specialty})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <button
                 onClick={handleBook}
-                className={`${
-                  editId ? "bg-yellow-600 hover:bg-yellow-700" : "bg-blue-600 hover:bg-blue-700"
-                } text-white px-4 py-2 rounded transition`}
+                disabled={isBooking}
+                className={`${isBooking
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : editId
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } text-white px-4 py-2 rounded transition`}
               >
                 <FaPlus className="inline mr-2" />
-                {editId ? "Update Appointment" : "Book Appointment"}
+                {isBooking ? "Booking..." : editId ? "Update Appointment" : "Book Appointment"}
               </button>
             </div>
           </div>
@@ -198,9 +327,12 @@ const handleBook = () => {
                       <tr key={a.id} className="border-b">
                         <td className="p-2">{dateTime.toLocaleDateString()}</td>
                         <td className="p-2">
-                          {dateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {dateTime.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </td>
-                        <td className="p-2">{a.extendedProps.type}</td>
+                        <td className="p-2">{a.extendedProps?.type || "Consultation"}</td>
                         <td className="p-2 flex gap-2">
                           <button
                             onClick={() => handleEdit(a.id)}
@@ -228,14 +360,13 @@ const handleBook = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Your Appointment Calendar</h3>
           <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]} 
-           initialView="dayGridMonth"
-           events={appointments}
-           dateClick={handleDateClick}
-           eventClick={handleEventClick}
-           height="auto"
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            events={appointments}
+            dateClick={handleDateClick}
+            eventClick={handleEventClick}
+            height="auto"
           />
-
         </div>
       </div>
     </div>

@@ -1,17 +1,24 @@
 import React, { useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
+import Sidebar from "../../components/Patient/Sidebar";
 import axios from "../../api/axios";
 import { ThemeContext } from "../../context/ThemeContext";
+import { useNavigate } from 'react-router-dom';
 
 const Payment = () => {
   const { darkMode } = useContext(ThemeContext);
+  const navigate = useNavigate();
+  const [sidebarWidth, setSidebarWidth] = useState(256);
   const location = useLocation();
   const appointment = location.state;
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
 
-  const amount = appointment?.extendedProps?.amount || 500;
+  const amount = appointment?.extendedProps?.amount ?? appointment?.amount ?? 500;
+  if (!amount) {
+    return setStatus("❗ Payment amount not found. Please go back and reselect the appointment.");
+  }
 
   const handlePayment = async () => {
     setStatus("");
@@ -19,7 +26,7 @@ const Payment = () => {
 
 // Handle formats like: 07XXXXXXXX
 if (formattedPhone.startsWith("07") && formattedPhone.length === 10) {
-  formattedPhone = "254" + formattedPhone.slice(1); // replace leading 0 with 254
+  formattedPhone = "254" + formattedPhone.slice(1);
 }
 
 // Handle formats like: 7XXXXXXXX (no leading 0)
@@ -42,12 +49,20 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
       });
 
       if (response.data?.status === "success") {
-        setStatus("✅ Payment request sent. Check your phone.");
+        setStatus("Payment request sent.");
+        setTimeout(() => {
+          navigate("/appointments", {
+            state: {
+              bookedAppointment: appointment,
+            },
+          });
+        }, 1500);
       } else {
-        setStatus("⚠️ Payment request failed.");
+        setStatus("Payment request failed.");
       }
+
     } catch (err) {
-      setStatus("❌ Error initiating payment. Try again.");
+      setStatus("Error initiating payment. Try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -56,6 +71,15 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
 
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      {/* Sidebar */}
+      <div className="fixed top-0 left-0 h-full z-10">
+        <Sidebar onToggle={setSidebarWidth} />
+      </div>
+
+      <div
+        className="flex-1 transition-all duration-300 p-6"
+        style={{ marginLeft: `${sidebarWidth}px` }}
+      ></div>
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl w-full max-w-4xl grid md:grid-cols-2 gap-8 p-8">
         
         {/* Appointment Summary */}

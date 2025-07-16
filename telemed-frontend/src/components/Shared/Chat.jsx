@@ -67,27 +67,28 @@ const Chat = ({ currentUser, role }) => {
   };
 
   const sendMessage = async () => {
-    if (!text.trim() && !image) return;
+  if (!text.trim() && !image) return;
 
-    const formData = new FormData();
-    formData.append("receiver_id", selectedUserId);
-    if (text) formData.append("message", text);
-    if (image) formData.append("file", image);
+  const formData = new FormData();
+  formData.append("receiver_id", selectedUserId);
+  if (text) formData.append("message", text);
+  if (image) formData.append("file", image); // this is fine if backend expects "file"
 
-    try {
-      const response = await axios.post("/chat/messages", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+  try {
+    const response = await axios.post("/chat/messages", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // Add if using Sanctum or Passport
+      },
+    });
+    setMessages((prev) => [...prev, response.data]);
+    setText("");
+    setImage(null);
+  } catch (error) {
+    console.error("Failed to send message:", error.response?.data || error.message);
+  }
+};
 
-      setMessages((prev) => [...prev, response.data]);
-      setText("");
-      setImage(null);
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    }
-  };
 
   return (
     <div className={`flex min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
@@ -103,15 +104,6 @@ const Chat = ({ currentUser, role }) => {
         <div className={`w-1/3 border-r ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} overflow-y-auto`}>
           <div className="flex justify-between items-center px-4 py-3 border-b">
             <h2 className="text-xl font-semibold">Chats</h2>
-            <button
-              onClick={() => {
-                setSelectedUserId(null);
-                setShowModal(true);
-              }}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              New Chat
-            </button>
           </div>
           <ul>
             {users.map((user) => (
@@ -187,7 +179,7 @@ const Chat = ({ currentUser, role }) => {
                 placeholder="Type your message..."
                 />
                 <input type="file" accept="image/*" onChange={handleImageChange} className="text-sm"/>
-                 <button nClick={sendMessage}className="bg-blue-600 text-white px-4 py-2 rounded-2xl shadow-sm hover:bg-blue-700" >
+                 <button onClick={sendMessage}className="bg-blue-600 text-white px-4 py-2 rounded-2xl shadow-sm hover:bg-blue-700" >
                   Send
                   </button>
                   </div>
