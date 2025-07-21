@@ -147,7 +147,7 @@ const Appointment = () => {
 
       const appointment = response.data;
 
-      const phone = prompt("Enter your M-PESA phone number:");
+      const phone = navigate("/patient/payment", { state: response.data });
       if (!phone) {
         showPopup("Payment cancelled. Phone number is required.");
         return;
@@ -155,8 +155,8 @@ const Appointment = () => {
 
       await axios.post("/mpesa/stkpush",
         {
-          phone,
-          amount,
+          phone_number: phone,
+          amount: amount,
           appointment_id: appointment.id,
         },
         {
@@ -165,7 +165,7 @@ const Appointment = () => {
           },
         }
       );
-      navigate("/patient/payment", { state: response.data });
+      //navigate("/patient/payment", { state: response.data });
     } catch (error) {
       console.error("Booking error:", error);
       const errorData = error.response?.data;
@@ -292,10 +292,10 @@ const Appointment = () => {
                 onClick={handleBook}
                 disabled={isBooking}
                 className={`${isBooking
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : editId
-                      ? "bg-yellow-600 hover:bg-yellow-700"
-                      : "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : editId
+                    ? "bg-yellow-600 hover:bg-yellow-700"
+                    : "bg-blue-600 hover:bg-blue-700"
                   } text-white px-4 py-2 rounded transition`}
               >
                 <FaPlus className="inline mr-2" />

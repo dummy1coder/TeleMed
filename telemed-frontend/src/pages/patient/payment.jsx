@@ -36,8 +36,6 @@ if (formattedPhone.length === 9 && formattedPhone.startsWith("7")) {
 if (!formattedPhone.match(/^2547\d{8}$/)) {
   return setStatus("Please enter a valid Safaricom number (e.g. 0712345678 or 712345678).");
 }
-
-
     setLoading(true);
     try {
       const response = await axios.post("/mpesa/stkpush", {
@@ -51,7 +49,7 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
       if (response.data?.status === "success") {
         setStatus("Payment request sent.");
         setTimeout(() => {
-          navigate("/appointments", {
+          navigate("/patient/appointments", {
             state: {
               bookedAppointment: appointment,
             },
