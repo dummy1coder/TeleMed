@@ -39,13 +39,12 @@ class MpesaCallbackController extends Controller
             }
         }
 
-        Log::info("✅ Payment Successful | Phone: $phoneNumber | Amount: $amount | Receipt: $mpesaReceipt");
+        Log::info("Payment Successful | Phone: $phoneNumber | Amount: $amount | Receipt: $mpesaReceipt");
 
-        // 🔍 Match the appointment based on CheckoutRequestID or another identifier
         $appointment = Appointment::where('checkout_request_id', $checkoutRequestID)->first();
 
         if ($appointment) {
-            $appointment->status = 'paid';
+            $appointment->status = 'is_paid';
             $appointment->mpesa_receipt = $mpesaReceipt; 
             $appointment->save();
 

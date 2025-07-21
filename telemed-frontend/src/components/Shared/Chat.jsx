@@ -42,7 +42,7 @@ const Chat = ({ currentUser, role }) => {
       authEndpoint: "http://localhost:8000/broadcasting/auth",
       auth: {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       },
     });
@@ -72,13 +72,13 @@ const Chat = ({ currentUser, role }) => {
   const formData = new FormData();
   formData.append("receiver_id", selectedUserId);
   if (text) formData.append("message", text);
-  if (image) formData.append("file", image); // this is fine if backend expects "file"
+  if (image) formData.append("file", image); 
 
   try {
     const response = await axios.post("/chat/messages", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // Add if using Sanctum or Passport
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`, 
       },
     });
     setMessages((prev) => [...prev, response.data]);

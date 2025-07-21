@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('appointments', function (Blueprint $table) {
-            $table->boolean('paid')->default(false);
+            $table->boolean('is_paid')->default(false);
         });
     }
 

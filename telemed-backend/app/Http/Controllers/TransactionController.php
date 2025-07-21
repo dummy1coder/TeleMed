@@ -10,6 +10,9 @@ class TransactionController extends Controller
 {
     public function stkPushRequest(Request $request)
     {
+
+         \Log::info('MPESA STK PUSH REQUEST:', $request->all());
+         
         $request->validate([
             'phone_number' => 'required|string',
             'amount' => 'required|numeric|min:1',

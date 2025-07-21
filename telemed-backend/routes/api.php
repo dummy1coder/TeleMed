@@ -13,24 +13,24 @@ use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AppointmentController;
 use App\Models\User;
 
-// 🔓 Public routes
+// Public routes
 Route::post('/patient/register', [AuthController::class, 'register']);
 Route::post('/doctor/register', [DoctorRegisterController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// ✅ M-PESA PUBLIC ROUTES
+// M-PESA PUBLIC ROUTES
 Route::post('/mpesa/stkpush', [TransactionController::class, 'stkPushRequest']);
 Route::post('/mpesa/callback', [MpesaCallbackController::class, 'handleCallback']);
 Route::get('/confirm/{transactionCode}', [TransactionController::class, 'checkTransactionStatus']);
 Route::post('/mpesa/status/result', [MpesaCallbackController::class, 'handleResult']);
 Route::post('/mpesa/status/timeout', [MpesaCallbackController::class, 'handleTimeout']);
 
-// ✅ Broadcasting auth route (required for Pusher/private channels)
+// Broadcasting auth route (required for Pusher/private channels)
 Route::post('/broadcasting/auth', function (Request $request) {
     return Broadcast::auth($request);
 })->middleware('auth:sanctum');
 
-// 🔐 Protected routes
+// Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -60,7 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('chat')->group(function () {
         Route::get('/users', [ChatController::class, 'chatUsers']);
         Route::get('/messages/{userId}', [ChatController::class, 'fetchMessages']);
-        Route::post('/messages', [ChatController::class, 'sendMessage']);
         Route::post('/messages', [ChatController::class, 'store']);
     });
     //Appointment

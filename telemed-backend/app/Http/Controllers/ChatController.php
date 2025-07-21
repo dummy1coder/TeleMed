@@ -101,14 +101,14 @@ class ChatController extends Controller
 
         if ($user->role === 'patient') {
             $doctorIds = \App\Models\Appointment::where('patient_id', $user->id)
-                ->where('paid', true)
+                ->where('is_paid', true)
                 ->pluck('doctor_id')
                 ->unique();
 
             $users = \App\Models\User::whereIn('id', $doctorIds)->get();
         } elseif ($user->role === 'doctor') {
             $patientIds = \App\Models\Appointment::where('doctor_id', $user->id)
-                ->where('paid', true)
+                ->where('is_paid', true)
                 ->pluck('patient_id')
                 ->unique();
 

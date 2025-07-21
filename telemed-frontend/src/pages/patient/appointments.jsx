@@ -153,8 +153,7 @@ const Appointment = () => {
         return;
       }
 
-      await axios.post(
-        "/mpesa/stkpush",
+      await axios.post("/mpesa/stkpush",
         {
           phone,
           amount,

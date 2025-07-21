@@ -17,26 +17,24 @@ const Payment = () => {
 
   const amount = appointment?.extendedProps?.amount ?? appointment?.amount ?? 500;
   if (!amount) {
-    return setStatus("❗ Payment amount not found. Please go back and reselect the appointment.");
+    return setStatus("Payment amount not found. Please go back and reselect the appointment.");
   }
 
   const handlePayment = async () => {
     setStatus("");
     let formattedPhone = phone.trim();
 
-// Handle formats like: 07XXXXXXXX
 if (formattedPhone.startsWith("07") && formattedPhone.length === 10) {
   formattedPhone = "254" + formattedPhone.slice(1);
 }
 
-// Handle formats like: 7XXXXXXXX (no leading 0)
 if (formattedPhone.length === 9 && formattedPhone.startsWith("7")) {
   formattedPhone = "254" + formattedPhone;
 }
 
 // Final validation
 if (!formattedPhone.match(/^2547\d{8}$/)) {
-  return setStatus("❗ Please enter a valid Safaricom number (e.g. 0712345678 or 712345678).");
+  return setStatus("Please enter a valid Safaricom number (e.g. 0712345678 or 712345678).");
 }
 
 
@@ -45,7 +43,9 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
       const response = await axios.post("/mpesa/stkpush", {
         phone_number: formattedPhone,
         amount: amount,
+        appointment_id: appointment?.id,
         description: appointment?.title || "Appointment Payment",
+
       });
 
       if (response.data?.status === "success") {
