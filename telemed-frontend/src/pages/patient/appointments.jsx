@@ -55,7 +55,7 @@ const Appointment = () => {
       if (!token) return;
 
       try {
-        const response = await axios.get("/appointments", {
+        const response = await axios.get("/patient/appointments", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -165,7 +165,6 @@ const Appointment = () => {
           },
         }
       );
-      //navigate("/patient/payment", { state: response.data });
     } catch (error) {
       console.error("Booking error:", error);
       const errorData = error.response?.data;
@@ -231,7 +230,6 @@ const Appointment = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Appointment Form */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
             <h3 className="text-lg font-bold mb-4">
               {editId ? "Edit" : "Book"} Appointment
@@ -282,7 +280,7 @@ const Appointment = () => {
                   <option value="">-- Select a Doctor --</option>
                   {doctors.map((doc) => (
                     <option key={doc.id} value={doc.id}>
-                      Dr. {doc.full_name} ({doc.specialty})
+                      Dr. {doc.name}
                     </option>
                   ))}
                 </select>

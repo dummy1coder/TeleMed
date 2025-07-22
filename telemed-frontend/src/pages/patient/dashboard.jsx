@@ -15,13 +15,11 @@ const PatientDashboard = () => {
   const [sidebarWidth, setSidebarWidth] = useState(256);
 
   useEffect(() => {
-    // Load patient info from localStorage
     const user = JSON.parse(localStorage.getItem("currentUser"));
     if (user?.role === "patient") {
       setPatient(user);
     }
 
-    // Simulated appointments
     setAppointments([
       {
         id: 1,
@@ -82,7 +80,6 @@ const PatientDashboard = () => {
         className="flex-1 p-6 transition-all duration-300"
         style={{ marginLeft: `${sidebarWidth}px` }}
       >
-        {/* Dark mode toggle */}
         <div className="flex justify-end mb-4">
           <button
             onClick={toggleDarkMode}
@@ -100,14 +97,11 @@ const PatientDashboard = () => {
           </button>
         </div>
 
-        {/* Welcome message */}
         <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-300 mb-6">
           Welcome, {patient.name}
         </h1>
 
-        {/* Dashboard grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Calendar */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
             <div className="flex items-center gap-3 mb-4 text-blue-600 dark:text-blue-400">
               <FaCalendarAlt className="text-2xl" />
@@ -122,7 +116,6 @@ const PatientDashboard = () => {
             />
           </div>
 
-          {/* Health chart */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
             <div className="flex items-center gap-3 mb-4 text-green-600 dark:text-green-400">
               <FaHeartbeat className="text-2xl" />
@@ -149,7 +142,6 @@ const PatientDashboard = () => {
             </div>
           </div>
 
-          {/* Health tips */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
             <div className="flex items-center gap-3 mb-4 text-yellow-600 dark:text-yellow-400">
               <FaLightbulb className="text-2xl" />
