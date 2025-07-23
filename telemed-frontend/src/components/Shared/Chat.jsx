@@ -17,7 +17,6 @@ const Chat = ({ currentUser, role }) => {
   const [showModal, setShowModal] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Select the correct sidebar based on role
   const SidebarComponent = role === "doctor" ? DoctorSidebar : PatientSidebar;
 
   useEffect(() => {

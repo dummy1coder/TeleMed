@@ -93,7 +93,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
 
-        \Log::info('UpdateProfile Request', $request->all());
+        Log::info('UpdateProfile Request', $request->all());
 
         $user = $request->user();
         $validated = $request->validate([

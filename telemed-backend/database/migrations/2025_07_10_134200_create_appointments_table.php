@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('patient_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
-            //$table->string('type');
             $table->date('date');
             $table->time('time');
             $table->decimal('amount', 8, 2);

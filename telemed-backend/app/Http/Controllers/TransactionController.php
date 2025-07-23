@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Repositories\MpesaStkpush;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
     public function stkPushRequest(Request $request)
     {
 
-         \Log::info('MPESA STK PUSH REQUEST:', $request->all());
+         Log::info('MPESA STK PUSH REQUEST:', $request->all());
          
         $request->validate([
             'phone_number' => 'required|string',
