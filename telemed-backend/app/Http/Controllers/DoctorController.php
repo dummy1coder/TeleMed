@@ -28,7 +28,7 @@ class DoctorController extends Controller
             'appointmentTime' => 'nullable|string|max:10',
             'services' => 'nullable|string|max:500',
             'profile' => 'nullable|string|max:1000',
-            'profileImage' => 'nullable|image|max:2048', 
+            'profileImage' => 'nullable|image|max:2048',
         ]);
 
         if (isset($data['appointmentTime'])) {
@@ -54,33 +54,31 @@ class DoctorController extends Controller
     }
 
     public function changePassword(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'current' => 'required|string',
-        'new' => 'required|string|min:8|confirmed',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'current' => 'required|string',
+            'new' => 'required|string|min:8|confirmed',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $doctor = $request->user();
+
+        if (!Hash::check($request->current, $doctor->password)) {
+            return response()->json([
+                'message' => 'Current password is incorrect.',
+            ], 403);
+        }
+
+        $doctor->password = Hash::make($request->new);
+        $doctor->save();
+
         return response()->json([
-            'errors' => $validator->errors(),
-        ], 422);
+            'message' => 'Password changed successfully.',
+        ]);
     }
-
-    $doctor = $request->user();
-
-    // Check current password
-    if (!Hash::check($request->current, $doctor->password)) {
-        return response()->json([
-            'message' => 'Current password is incorrect.',
-        ], 403);
-    }
-
-    // Update password
-    $doctor->password = Hash::make($request->new);
-    $doctor->save();
-
-    return response()->json([
-        'message' => 'Password changed successfully.',
-    ]);
-}
 }

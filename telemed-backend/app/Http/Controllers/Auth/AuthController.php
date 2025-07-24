@@ -16,20 +16,19 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
-    //Register Patient
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-    'name' => 'required|string|max:255',
-    'email' => [
-        'required',
-        'email',
-        Rule::unique('users')->where(function ($query) {
-            return $query->where('role', 'patient');
-        }),
-    ],
-    'password' => 'required|string|confirmed|min:8',
-]);
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users')->where(function ($query) {
+                    return $query->where('role', 'patient');
+                }),
+            ],
+            'password' => 'required|string|confirmed|min:8',
+        ]);
 
 
         if ($validator->fails()) {
@@ -57,7 +56,6 @@ class AuthController extends Controller
         ]);
     }
 
-    //Login (works for all users)
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -84,7 +82,6 @@ class AuthController extends Controller
         ]);
     }
 
-    //profile
     public function profile(Request $request)
     {
         return response()->json($request->user());
@@ -108,8 +105,6 @@ class AuthController extends Controller
         return response()->json($user);
     }
 
-
-    //Logout
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -119,19 +114,16 @@ class AuthController extends Controller
         ]);
     }
 
-    //Get All Patients
     public function index()
     {
         return User::where('role', 'patient')->get();
     }
 
-    //Get Single Patient
     public function show($id)
     {
         return User::where('role', 'patient')->findOrFail($id);
     }
 
-    //Full Update Patient
     public function update(Request $request, $id)
     {
         $user = User::where('role', 'patient')->findOrFail($id);
@@ -140,7 +132,6 @@ class AuthController extends Controller
         return $user;
     }
 
-    //Partial Update Patient
     public function patch(Request $request, $id)
     {
         $user = User::where('role', 'patient')->findOrFail($id);
@@ -149,7 +140,6 @@ class AuthController extends Controller
         return $user;
     }
 
-    //Delete Patient
     public function destroy($id)
     {
         $user = User::where('role', 'patient')->find($id);

@@ -9,18 +9,15 @@ const AccountSettings = () => {
   const [section, setSection] = useState("password");
   const [sidebarWidth, setSidebarWidth] = useState(256);
 
-  // Password Section State
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [passwordError, setPasswordError] = useState("");
 
-  // Notification State
   const [setNotifications] = useState({
     email: true,
     sms: false,
     push: true,
   });
 
-  // Profile Section State
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -92,7 +89,6 @@ const AccountSettings = () => {
       <div className="flex-1 transition-all duration-300 px-6 py-8" style={{ marginLeft: `${sidebarWidth}px` }}>
         <h1 className="text-2xl font-bold mb-6 text-blue-700 dark:text-blue-300">Account Settings</h1>
 
-        {/* Tabs */}
         <div className="flex flex-wrap space-x-4 mb-6">
           {[
             { key: "profile", label: "Update Profile", icon: FaUser },
@@ -114,7 +110,6 @@ const AccountSettings = () => {
           ))}
         </div>
 
-        {/* Content Area */}
         <div className={`p-6 rounded-2xl shadow max-w-xl ${darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
           {section === "profile" && (
             <>

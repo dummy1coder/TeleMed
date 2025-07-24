@@ -12,7 +12,7 @@ const Chat = ({ currentUser, role }) => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  // const [image, setImage] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [showModal, setShowModal] = useState(false);
   const messagesEndRef = useRef(null);
@@ -61,32 +61,33 @@ const Chat = ({ currentUser, role }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleImageChange = (e) => {
+  /*const handleImageChange = (e) => {
     setImage(e.target.files[0]);
-  };
+  };*/
 
   const sendMessage = async () => {
-  if (!text.trim() && !image) return;
+    if (!text.trim())
+      return;
 
-  const formData = new FormData();
-  formData.append("receiver_id", selectedUserId);
-  if (text) formData.append("message", text);
-  if (image) formData.append("file", image); 
+    const formData = new FormData();
+    formData.append("receiver_id", selectedUserId);
+    if (text) formData.append("message", text);
+    // if (image) formData.append("file", image); 
 
-  try {
-    const response = await axios.post("/chat/messages", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${localStorage.getItem("authToken")}`, 
-      },
-    });
-    setMessages((prev) => [...prev, response.data]);
-    setText("");
-    setImage(null);
-  } catch (error) {
-    console.error("Failed to send message:", error.response?.data || error.message);
-  }
-};
+    try {
+      const response = await axios.post("/chat/messages", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      });
+      setMessages((prev) => [...prev, response.data]);
+      setText("");
+      // setImage(null);
+    } catch (error) {
+      console.error("Failed to send message:", error.response?.data || error.message);
+    }
+  };
 
 
   return (
@@ -109,9 +110,8 @@ const Chat = ({ currentUser, role }) => {
               <li
                 key={user.id}
                 onClick={() => setSelectedUserId(user.id)}
-                className={`p-4 cursor-pointer hover:bg-blue-100 ${
-                  selectedUserId === user.id ? "bg-blue-200" : ""
-                }`}
+                className={`p-4 cursor-pointer hover:bg-blue-100 ${selectedUserId === user.id ? "bg-blue-200" : ""
+                  }`}
               >
                 {user.name}
               </li>
@@ -129,63 +129,61 @@ const Chat = ({ currentUser, role }) => {
           ) : (
             <>
               <h2 className="text-lg font-semibold border-b pb-2 mb-4">
-                 {users.find((u) => u.id === selectedUserId)?.name}
+                {users.find((u) => u.id === selectedUserId)?.name}
               </h2>
               <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                 {messages.map((msg, idx) => {
                   const isSender = msg.sender_id === currentUser.id;
                   return (
-                  <div
-                  key={idx}
-                  className={`flex items-end ${
-                    isSender ? "justify-end" : "justify-start"
-                  }`}
-                  >
                     <div
-                    className={`max-w-[70%] px-4 py-2 rounded-2xl relative text-sm shadow-md ${
-                      isSender
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-800"
-                    }`}>
-                      <div className="flex items-end justify-between gap-2">
-                        <span className="break-words block">
-                          {msg.message && <>{msg.message}</>}
-                          {msg.image_url && (
-                            <img src={msg.image_url} alt="chat media" className="rounded mt-1 max-w-xs" />
+                      key={idx}
+                      className={`flex items-end ${isSender ? "justify-end" : "justify-start"
+                        }`}
+                    >
+                      <div
+                        className={`max-w-[70%] px-4 py-2 rounded-2xl relative text-sm shadow-md ${isSender
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-800"
+                          }`}>
+                        <div className="flex items-end justify-between gap-2">
+                          <span className="break-words block">
+                            {msg.message && <>{msg.message}</>}
+                            {msg.image_url && (
+                              <img src={msg.image_url} alt="chat media" className="rounded mt-1 max-w-xs" />
                             )}
-                            {msg.file_path && ( <a href={msg.file_path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block mt-1 underline text-blue-200 hover:text-blue-300" > View File
-                            </a> )} </span>
-                            <span className="text-[10px] text-gray-300 ml-2 whitespace-nowrap">
-                              {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit",
-                              })}
-                              </span>
-                              </div>
-                              </div>
-                              </div>
-                              );
+                            {msg.file_path && (<a href={msg.file_path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block mt-1 underline text-blue-200 hover:text-blue-300" > View File
+                            </a>)} </span>
+                          <span className="text-[10px] text-gray-300 ml-2 whitespace-nowrap">
+                            {new Date(msg.created_at).toLocaleTimeString([], {
+                              hour: "2-digit", minute: "2-digit",
                             })}
-                            <div ref={messagesEndRef} />
-                            </div>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
 
               {/* Message Input */}
               <div className="flex gap-2 pt-4">
-                <input type="text" value={text} onChange={(e) => setText(e.target.value)} className={`flex-1 px-4 py-2 rounded-2xl text-sm shadow-sm focus:outline-none ${
-                  darkMode ? "bg-gray-800 text-white border-gray-600" : "bg-white border"
-                }`}
-                placeholder="Type your message..."
+                <input type="text" value={text} onChange={(e) => setText(e.target.value)} className={`flex-1 px-4 py-2 rounded-2xl text-sm shadow-sm focus:outline-none ${darkMode ? "bg-gray-800 text-white border-gray-600" : "bg-white border"
+                  }`}
+                  placeholder="Type your message..."
                 />
-                <input type="file" accept="image/*" onChange={handleImageChange} className="text-sm"/>
-                 <button onClick={sendMessage}className="bg-blue-600 text-white px-4 py-2 rounded-2xl shadow-sm hover:bg-blue-700" >
+                {/* <input type="file" accept="image/*" onChange={handleImageChange} className="text-sm"/> */}
+                <button onClick={sendMessage} className="bg-blue-600 text-white px-4 py-2 rounded-2xl shadow-sm hover:bg-blue-700" >
                   Send
-                  </button>
-                  </div>
-                  </>
-                )}
-                </div>
-                </div>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Modal */}
       {showModal && (

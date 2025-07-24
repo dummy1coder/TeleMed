@@ -147,24 +147,8 @@ const Appointment = () => {
 
       const appointment = response.data;
 
-      const phone = navigate("/patient/payment", { state: response.data });
-      if (!phone) {
-        showPopup("Payment cancelled. Phone number is required.");
-        return;
-      }
+      navigate("/patient/payment", { state: {appointment: response.data}});
 
-      await axios.post("/mpesa/stkpush",
-        {
-          phone_number: phone,
-          amount: amount,
-          appointment_id: appointment.id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
     } catch (error) {
       console.error("Booking error:", error);
       const errorData = error.response?.data;

@@ -1,24 +1,30 @@
-import React, { useState, useContext } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Patient/Sidebar";
 import axios from "../../api/axios";
 import { ThemeContext } from "../../context/ThemeContext";
-import { useNavigate } from 'react-router-dom';
 
 const Payment = () => {
   const { darkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const location = useLocation();
-  const appointment = location.state;
+  const appointment = location.state?.appointment;
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState("");
-
-  const amount = appointment?.extendedProps?.amount ?? appointment?.amount ?? 500;
-  if (!amount) {
-    return setStatus("Payment amount not found. Please go back and reselect the appointment.");
+  const [status, setStatus] = useState(null);
+  const [amount, setAmount] = useState(appointment?.extendedProps?.amount ?? appointment?.amount ?? 1);
+  useEffect(()=>{
+    console.log("Appointment:", appointment);
+    const newAmount = (appointment?.extendedProps?.amount ?? appointment?.amount ?? 0);
+    if (newAmount<=0){
+    setStatus("Payment amount not found");
   }
+  else{
+    setAmount(newAmount);
+  }
+  }, [appointment]);
+
 
   const handlePayment = async () => {
     setStatus("");
@@ -32,19 +38,24 @@ if (formattedPhone.length === 9 && formattedPhone.startsWith("7")) {
   formattedPhone = "254" + formattedPhone;
 }
 
-// Final validation
 if (!formattedPhone.match(/^2547\d{8}$/)) {
   return setStatus("Please enter a valid Safaricom number (e.g. 0712345678 or 712345678).");
 }
     setLoading(true);
     try {
+      const token = localStorage.getItem("authToken");
       const response = await axios.post("/mpesa/stkpush", {
         phone_number: formattedPhone,
         amount: amount,
         appointment_id: appointment?.id,
         description: appointment?.title || "Appointment Payment",
-
-      });
+      },
+      {
+        headers:{
+          Authorization:`Bearer ${token}`,
+        },
+      }
+    );
 
       if (response.data?.status === "success") {
         setStatus("Payment request sent.");
@@ -60,6 +71,7 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
       }
 
     } catch (err) {
+      console.error(err);
       setStatus("Error initiating payment. Try again.");
       console.error(err);
     } finally {
@@ -80,7 +92,6 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
       ></div>
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl w-full max-w-4xl grid md:grid-cols-2 gap-8 p-8">
         
-        {/* Appointment Summary */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-blue-600">Complete Your Payment</h2>
           <div className="text-sm">
@@ -90,7 +101,6 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
           </div>
         </div>
 
-        {/* Payment Form */}
         <div className="space-y-4">
           <label className="block text-sm font-semibold">Phone Number</label>
           <input
@@ -114,8 +124,8 @@ if (!formattedPhone.match(/^2547\d{8}$/)) {
           {status && (
             <p
               className={`text-sm mt-2 ${
-                status.includes("✅") ? "text-green-600" :
-                status.includes("❌") ? "text-red-600" :
+                status.toLowerCase(). includes("success") ? "text-green-600" :
+                status.toLowerCase(). includes("error") ? "text-red-600" :
                 "text-yellow-600"
               }`}
             >

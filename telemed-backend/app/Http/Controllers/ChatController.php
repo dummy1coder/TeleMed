@@ -33,7 +33,7 @@ class ChatController extends Controller
                     'sender_name' => $msg->sender->name ?? 'Unknown',
                     'created_at' => $msg->created_at,
                     'image_url' => $msg->image_url ? asset('storage/' . $msg->image_url) : null,
-                    'file_path' => $msg->file_path ? asset('storage/' . $msg->file_path) : null,
+                    // 'file_path' => $msg->file_path ? asset('storage/' . $msg->file_path) : null,
                 ];
             });
 
@@ -76,7 +76,7 @@ class ChatController extends Controller
             'receiver_id' => $validated['receiver_id'],
             'message' => $validated['message'],
             'image_url' => $imagePath,
-            'file_path' => $filePath,
+            // 'file_path' => $filePath,
         ]);
 
         $message->load('sender');
@@ -89,7 +89,7 @@ class ChatController extends Controller
             'receiver_id' => $message->receiver_id,
             'message' => $message->message,
             'image_url' => $imagePath ? asset('storage/' . $imagePath) : null,
-            'file_path' => $filePath ? asset('storage/' . $filePath) : null,
+            // 'file_path' => $filePath ? asset('storage/' . $filePath) : null,
             'sender_name' => $message->sender->name ?? 'Unknown',
             'created_at' => $message->created_at,
         ]);
@@ -100,17 +100,20 @@ class ChatController extends Controller
         $user = $request->user();
 
         if ($user->role === 'patient') {
-            $doctorIds = \App\Models\Appointment::where('patient_id', $user->id)
-                ->where('is_paid', true)
-                ->select('doctor_id')
-                ->unique();
+            $doctorIds = Appointment::where('patient_id', $user->id)
 
+                ->where('is_paid', 0)
+                ->get(['doctor_id'])
+                ->unique('doctor_id')
+                ->pluck('doctor_id');
             $users = \App\Models\User::whereIn('id', $doctorIds)->get();
         } elseif ($user->role === 'doctor') {
-            $patientIds = \App\Models\Appointment::where('doctor_id', $user->id)
-                ->where('is_paid', true)
-                ->select('patient_id')
-                ->unique();
+            $patientIds = Appointment::where('doctor_id', $user->id)
+
+                ->where('is_paid', 0)
+                ->get(['patient_id'])
+                ->unique('patient_id')
+                ->pluck('patient_id');
 
             $users = \App\Models\User::whereIn('id', $patientIds)->get();
         } else {
@@ -124,7 +127,7 @@ class ChatController extends Controller
         $request->validate([
             'receiver_id' => 'required|exists:users,id',
             'message' => 'required|string',
-            'appointment_id' => 'nullable|exists:appointments,id', 
+            'appointment_id' => 'nullable|exists:appointments,id',
         ]);
 
         $message = Message::create([

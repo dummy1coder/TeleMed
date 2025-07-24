@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Appointment;
+use App\Models\Payment;
 
 
 class MpesaCallbackController extends Controller
@@ -22,13 +23,14 @@ class MpesaCallbackController extends Controller
 
     $resultCode = $data['ResultCode'];
     $resultDesc = $data['ResultDesc'];
-    $merchantRequestID = $data['MerchantRequestID'];
+    $checkoutRequestID = $data['CheckoutRequestID'];
+    $merchantRequestID = $data['MerhantRequestID'];
     $checkoutRequestID = $data['CheckoutRequestID'];
     $amount = null;
     $mpesaReceipt = null;
     $phoneNumber = null;
 
-    if ($resultCode === 0) {
+    if ($resultCode === 0 &&isset($data['CallbackMetadata']['Item'])) {
         foreach ($data['CallbackMetadata']['Item'] as $item) {
             if ($item['Name'] === 'Amount') {
                 $amount = $item['Value'];
@@ -56,6 +58,9 @@ class MpesaCallbackController extends Controller
     } else {
         Log::error("Payment Failed | Code: $resultCode | Desc: $resultDesc");
     }
+    \App\Models\Payment::where('transaction_id', $checkoutRequestID)->update([
+        'transaction_status' =>$resultCode === 0 ? 'success' : 'failed',
+    ]);
 
     return response()->json(['status' => 'Callback processed'], 200);
 }

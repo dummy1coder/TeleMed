@@ -4,7 +4,6 @@ const PatientNavbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -17,10 +16,9 @@ const PatientNavbar = () => {
 
   return (
     <div className="flex items-center justify-between bg-white shadow px-6 py-3 rounded-xl mb-6">
-      {/* Left: Profile */}
       <div className="flex items-center space-x-4">
         <img
-          src="/images/patient-profile.jpg" // Replace with your actual image path
+          src="/images/patient-profile.jpg"
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover"
         />
@@ -30,7 +28,6 @@ const PatientNavbar = () => {
         </div>
       </div>
 
-      {/* Center: Search */}
       <div className="flex-1 mx-6">
         <input
           type="text"
@@ -39,9 +36,7 @@ const PatientNavbar = () => {
         />
       </div>
 
-      {/* Right: Icons */}
       <div className="flex items-center space-x-6 text-gray-600 relative">
-        {/* Notifications */}
         <button className="relative hover:text-blue-600">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -54,7 +49,6 @@ const PatientNavbar = () => {
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full">3</span>
         </button>
 
-        {/* Settings Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowDropdown(!showDropdown)}
@@ -70,7 +64,6 @@ const PatientNavbar = () => {
             </svg>
           </button>
 
-          {/* Dropdown Menu */}
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
               <button
